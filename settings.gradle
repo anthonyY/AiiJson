@@ -1,1 +1,1 @@
-include ':aiijsonlib', ':aiijsonexample'
+include ':aiijsonlib', ':aiijsonexample', ':example'

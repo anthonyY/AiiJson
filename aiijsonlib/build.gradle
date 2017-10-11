@@ -10,10 +10,12 @@ dependencies {
     compile 'org.json:json:20080701'
 }
 
-sourceCompatibility = "1.8"
-targetCompatibility = "1.8"
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"
 
-
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
 //项目主页
 def siteUrl = 'https://github.com/anthonyY/AiiJson'
 //项目的git地址

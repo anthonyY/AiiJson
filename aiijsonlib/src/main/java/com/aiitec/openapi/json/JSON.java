@@ -384,6 +384,11 @@ public class JSON {
         return null;
     }
 
+    public static <T> T parseObject(JSONObject json, Class<T> clazz){
+        T t = parseObject(json, clazz, JSON.combinationType);
+        return t;
+    }
+
    
     /**
      * 把JSON组成List集合

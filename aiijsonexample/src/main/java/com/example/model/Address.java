@@ -3,7 +3,6 @@ package com.example.model;
 import com.aiitec.openapi.json.annotation.JSONField;
 
 import java.text.DecimalFormat;
-
 import java.util.List;
 
 /**
@@ -17,7 +16,7 @@ public class Address extends Entity{
 
     /**邮政编码*/
     private String postcode;
-    /**默认0 否  1 是*/
+//    /** 默认0 否  1 是*/
 //	private String type;
     /**D字应该是小写, 由于java对这个字段有定义，冲突了，所以用大写D*/
     @JSONField(name="default")
