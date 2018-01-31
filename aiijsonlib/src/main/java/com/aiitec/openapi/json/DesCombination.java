@@ -1,24 +1,23 @@
 package com.aiitec.openapi.json;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import com.aiitec.openapi.json.annotation.JSONField;
 import com.aiitec.openapi.json.enums.CombinationType;
 import com.aiitec.openapi.json.utils.JsonUtils;
 import com.aiitec.openapi.json.utils.TextUtils;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class DesCombination {
 	
-	public static <T> void desCombinationArray2(JSONArray jsonArray, T t,
-			Class<?> clazz, Class<?> childClass, Field field,
+	public static <T> void desCombinationArray2(JSONArray jsonArray, T t,  Class<?> childClass, Field field,
 			CombinationType combinationType) throws InstantiationException,
 			IllegalAccessException {
 		List<Object> arrays = new ArrayList<Object>();
@@ -87,8 +86,9 @@ public class DesCombination {
 					if (!TextUtils.isEmpty(jsonString)) {
 						try {
 							entity = JSON.parseObject(jsonString, childClass, combinationType);
-							if (entity != null)
+							if (entity != null) {
 								arrays.add(entity);
+							}
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -100,8 +100,7 @@ public class DesCombination {
 		}
 	}
 
-	public static <T> void desCombinationArray(JSONObject json, T t,
-			Class<?> clazz, Class<?> childClass, Field field, String fieldName,
+	public static <T> void desCombinationArray(JSONObject json, T t, Class<?> childClass, Field field, String fieldName,
 			String entityName, CombinationType combinationType)
 			throws InstantiationException, IllegalAccessException {
 
@@ -178,8 +177,9 @@ public class DesCombination {
 						if (!TextUtils.isEmpty(jsonString)) {
 							try {
 								entity = JSON.parseObject(jsonString, childClass, combinationType);
-								if (entity != null)
+								if (entity != null) {
 									arrays.add(entity);
+								}
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -197,8 +197,6 @@ public class DesCombination {
 	 * 
 	 * @param field
 	 *            变量
-	 * @param clazz
-	 *            类
 	 * @param json
 	 *            json内容
 	 * @param t
@@ -209,8 +207,7 @@ public class DesCombination {
 	 * @throws IllegalAccessException
 	 * @throws JSONException
 	 */
-	public static void setValueToAttribute(Field field,
-			Class<? extends Object> clazz, JSONObject json, Object t,
+	public static void setValueToAttribute(Field field, JSONObject json, Object t,
 			String replaceName) throws IllegalAccessException,
 			InvocationTargetException, NoSuchMethodException,
 			IllegalArgumentException {

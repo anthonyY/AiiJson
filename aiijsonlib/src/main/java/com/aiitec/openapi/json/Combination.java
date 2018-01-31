@@ -7,11 +7,13 @@ import com.aiitec.openapi.json.utils.JsonUtils;
 
 import org.json.JSONException;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 /***
@@ -197,7 +199,50 @@ public class Combination {
                         }
                     }
             	}
-            } else {
+            }
+            // 当是数组的时候
+            else if (field.getType().isArray()) {
+
+                field.setAccessible(true);
+                Object result = field.get(t);
+                if(result != null){
+                    sb.append('\"').append(fieldName).append('\"').append(':');
+                    sb.append('[');
+                    for (int i = 0; i < Array.getLength(result); i++) {
+                        Object childObj = Array.get(result, i);
+                        if(childObj != null){
+                            String childStr = "";
+                            if(JsonUtils.isCommonField(childObj.getClass())){
+                                childStr = String.valueOf(childObj);
+                                if(Number.class.isAssignableFrom(childObj.getClass())){
+                                    sb.append(childStr).append(",");
+                                } else {
+                                    sb.append('"').append(childStr).append('"').append(",");
+                                }
+
+                            } else {
+                                childStr = JSON.toJsonString(childObj, combinationType);
+                                sb.append(childStr).append(",");
+                            }
+                        }
+                    }
+                    if(sb.toString().endsWith(",")){
+                        sb.deleteCharAt(sb.length()-1);
+                    }
+                    sb.append("]").append(',');
+
+                }
+            }
+            else if(Map.class.isAssignableFrom(field.getType())){
+                field.setAccessible(true);
+                Object result = field.get(t);
+                if(result != null){
+                    String str = JSON.mapToString((Map)result);
+                    sb.append('\"').append(fieldName).append('\"').append(':');
+                    sb.append(str).append(',');
+                }
+            }
+            else {
                 field.setAccessible(true);
                 Object en = field.get(t);
                 if (en != null) {

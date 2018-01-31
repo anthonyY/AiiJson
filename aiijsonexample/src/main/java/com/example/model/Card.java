@@ -17,6 +17,7 @@ public class Card extends Entity {
     private String cardName;
     private long id ;
     private int type ;
+    private int ids[] ;
     //	@Deprecated
     @JSONField(notCombination=true)
     private int visitStat = -1;
@@ -39,6 +40,7 @@ public class Card extends Entity {
     private ArrayList<String> qqs;
     @JSONField(name="mobile")
     private ArrayList<String> mobiles;
+    private String[] mobiles2;
 
     private String signature;
     private String job;
@@ -62,9 +64,11 @@ public class Card extends Entity {
     public void setWeixinImage(int weixinImage) {
         this.weixinImage = weixinImage;
     }
+    @Override
     public long getId() {
         return id;
     }
+    @Override
     public void setId(long id) {
         this.id = id;
     }
@@ -196,5 +200,29 @@ public class Card extends Entity {
     }
     public void setImageId(int imageId) {
         this.imageId = imageId;
+    }
+
+    public int[] getIds() {
+        return ids;
+    }
+
+    public void setIds(int[] ids) {
+        this.ids = ids;
+    }
+
+    public int getVisitStat() {
+        return visitStat;
+    }
+
+    public void setVisitStat(int visitStat) {
+        this.visitStat = visitStat;
+    }
+
+    public String[] getMobiles2() {
+        return mobiles2;
+    }
+
+    public void setMobiles2(String[] mobiles2) {
+        this.mobiles2 = mobiles2;
     }
 }

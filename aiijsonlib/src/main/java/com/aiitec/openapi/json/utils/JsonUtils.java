@@ -66,11 +66,22 @@ public class JsonUtils {
      * @return 是否是常用数据类型
      */
     public static boolean isCommonField(Class<?> classType) {
-        boolean isCommonField = (classType.equals(int.class) || classType.equals(Integer.class)
-                || classType.equals(float.class) || classType.equals(Float.class) || classType.equals(double.class)
-                || classType.equals(Double.class) || classType.equals(long.class) || classType.equals(Long.class)
-                || classType.equals(char.class) || classType.equals(String.class) || classType.equals(boolean.class) || classType
-                .equals(Boolean.class));
+        boolean isCommonField = (classType.equals(int.class) || classType.equals(Integer.class) ||
+//                classType.equals(Integer[].class) || classType.equals(int[].class) ||
+                classType.equals(short.class) || classType.equals(Short.class) ||
+//                classType.equals(short[].class) || classType.equals(Short[].class) ||
+                classType.equals(byte.class) || classType.equals(Byte.class) ||
+//                classType.equals(byte[].class) || classType.equals(Byte[].class) ||
+                classType.equals(float.class) || classType.equals(Float.class) ||
+//                classType.equals(float[].class) || classType.equals(Float[].class) ||
+                classType.equals(double.class) || classType.equals(Double.class) ||
+//                classType.equals(double[].class) || classType.equals(Double[].class)  ||
+                classType.equals(long.class) ||classType.equals(Long.class) ||
+//                classType.equals(long[].class) || classType.equals(Long[].class) ||
+                classType.equals(char.class) || classType.equals(String.class) ||
+//                classType.equals(char[].class) || classType.equals(String[].class) ||
+                classType.equals(boolean.class) || classType.equals(Boolean.class) );
+//                classType.equals(boolean[].class) || classType.equals(Boolean[].class));
         return isCommonField;
     }
 

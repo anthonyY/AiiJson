@@ -131,9 +131,14 @@ private long userId = -1;
 ``` 
 dependencies {
     ...  
-    compile 'com.aiitec.aiijson:aiijsonlib:1.0.2'
+    compile 'com.aiitec.aiijson:aiijsonlib:1.0.3'
 }
 ```
+
+更新日志：
+1.0.3 增加对数组和Map的支持，Map只支持里面装常用数据类型，不支持Map装自定义对象
+更新时间 2018-01-31
+
 
 ```
 Copyright 2017 AiiJson

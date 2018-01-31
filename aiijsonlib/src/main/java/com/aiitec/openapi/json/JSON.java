@@ -11,11 +11,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -48,7 +51,12 @@ public class JSON {
             // java自带的是否是常用数据类型，但是不包括String
             if (JsonUtils.isCommonField(list.get(i).getClass())) {
                 sb.append("\"").append(list.get(i)).append("\"");
-            } else {
+            } else if(Map.class.isAssignableFrom(list.get(i).getClass())){
+                Map map = (Map) list.get(i);
+                String str = JSON.mapToString(map);
+                sb.append(str);
+            }
+            else {
                 String value = toJsonStringFromParent(list.get(i).getClass(), list.get(i), combinationType);
                 sb.append(value);
             }
@@ -84,12 +92,36 @@ public class JSON {
                 List<?> list = (List<?>) t;
                 requestData = getStringFromArray(list, combinationType);
 
-            } else if (t.getClass().equals(ArrayList.class)) {
+            }
+            else if (t.getClass().equals(ArrayList.class)) {
 
                 ArrayList<?> list = (ArrayList<?>) t;
                 requestData = getStringFromArray(list, combinationType);
 
-            } else {
+            }
+            else if (t.getClass().isArray()) {
+
+        	    StringBuffer sb = new StringBuffer();
+        	    sb.append("[");
+                for (int i = 0; i < Array.getLength(t); i++) {
+
+                    String str = toJsonString(Array.get(t, i), combinationType);
+                    sb.append(str).append(",");
+                }
+                if(sb.toString().endsWith(",")){
+                    sb.deleteCharAt(sb.length()-1);
+                }
+                sb.append("]");
+                requestData = sb.toString();
+
+            }
+            else if (Map.class.isAssignableFrom(t.getClass())) {
+
+                Map map = (Map) t;
+                requestData = mapToString(map);
+
+            }
+            else {
 
                 requestData = toJsonStringFromParent(t.getClass(), t, combinationType);
 
@@ -99,6 +131,33 @@ public class JSON {
 		}
         
         return requestData;
+    }
+
+    protected static String mapToString(Map map){
+        StringBuffer sb = new StringBuffer();
+        sb.append('{');
+        for (Object key : map.keySet()) {
+            Object value = map.get(key);
+            if(value != null){
+                sb.append('"').append(key.toString()).append('"').append(':');
+                if(JsonUtils.isCommonField(value.getClass())){
+                    if(Number.class.isAssignableFrom(value.getClass())){
+                        sb.append(value.toString()).append(',');
+                    } else {
+                        sb.append('"').append(value.toString()).append('"').append(',');
+                    }
+                } else if(Map.class.isAssignableFrom(value.getClass())){
+                    sb.append(mapToString((Map)value)).append(',');
+                } else {
+                    sb.append(toJsonString(value)).append(',');
+                }
+            }
+        }
+        if(sb.toString().endsWith(",")){
+            sb.deleteCharAt(sb.length()-1);
+        }
+        sb.append('}');
+        return sb.toString();
     }
 
     /**
@@ -118,7 +177,7 @@ public class JSON {
             JSONException {
         StringBuilder sb = new StringBuilder();
         sb.append('{');
-        // 必须不是枚举，被枚举坑过，很惨
+        // 必须不是枚举，被枚举坑过
         if (clazz != null && !JsonUtils.isCommonField(clazz) && !Enum.class.isAssignableFrom(clazz)) {
 
             List<Field> fields = CombinationUtil.getAllFields(clazz);
@@ -181,15 +240,20 @@ public class JSON {
             } else {
                 // 如果是常用数据类型
                 if (JsonUtils.isCommonField(field.getType())) {
-                    DesCombination.setValueToAttribute(field, clazz, json, t, fieldName);
+                    DesCombination.setValueToAttribute(field, json, t, fieldName);
                 }
-                // 如果是数组
+                // 如果是集合
                 else if (List.class.isAssignableFrom(field.getType())) {
                 	Class<?> childClass = CombinationUtil.getChildClass(field);
                 	if(childClass != null){
-                		 DesCombination.desCombinationArray(json, t, clazz, childClass, field, fieldName,
+                		 DesCombination.desCombinationArray(json, t, childClass, field, fieldName,
                                entityName, combinationType);
                 	}
+                }
+                // 如果是数组
+                else if (field.getType().isArray()) {
+                    JSONArray jsonArray = json.getJSONArray(fieldName);
+                    setValueFromArray(jsonArray, field, t);
                 }
                 // 如果是对象
                 else {
@@ -308,8 +372,11 @@ public class JSON {
     }
 
     private static void setValuesFromDictination2(Field field, Class<?> clazz, Object value, Object t, CombinationType combinationType) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, IllegalArgumentException, InstantiationException{
-    	if(field == null) return;
-    	if(JsonUtils.isCommonField(field.getType())){//常用数据类型
+    	if(field == null) {
+            return;
+        }
+        //常用数据类型
+    	if(JsonUtils.isCommonField(field.getType())){
 			DesCombination.setValueToAttribute2(t, field, clazz, value);
 		}
 		else if(Enum.class.isAssignableFrom(field.getType())){//数组
@@ -324,7 +391,7 @@ public class JSON {
 			if(childClass != null){
                 try{
                     JSONArray array = (JSONArray) value;
-                    DesCombination.desCombinationArray2(array, t, clazz, childClass, field, combinationType);
+                    DesCombination.desCombinationArray2(array, t, childClass, field, combinationType);
                 } catch (Exception e){
                     e.printStackTrace();
                     System.out.println("value is not JSONArray:\t"+clazz+":\t"+field.getName()+"\t"+value);
@@ -332,6 +399,15 @@ public class JSON {
 				
 			}
 		}
+		else if(field.getType().isArray()){//数组
+
+            JSONArray jsonArray = (JSONArray) value;
+
+            setValueFromArray(jsonArray, field, t);
+		}
+        else if (Map.class.isAssignableFrom(field.getType())) {
+            setValueFromMap((JSONObject) value, field, t);
+        }
 		else {//对象
             try {
                 Object entity = JSON.parseObject(value.toString(), field.getType());
@@ -350,6 +426,102 @@ public class JSON {
 
 		}
     }
+
+    private static void setValueFromArray(JSONArray jsonArray, Field field, Object t) throws IllegalAccessException {
+        Class childType = field.getType().getComponentType();
+        if (jsonArray != null) {
+            Object array = Array.newInstance(childType, jsonArray.length());
+            if (JsonUtils.isCommonField(childType)) {
+
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    Object childValue = null;
+                    if (childType == int.class || childType == Integer.class) {
+                        childValue = jsonArray.optInt(i, 0);
+                    } else if (childType == float.class || childType == Float.class) {
+                        childValue = (float) jsonArray.optDouble(i, 0);
+                    } else if (childType == double.class || childType == Double.class) {
+                        childValue = jsonArray.optDouble(i, 0);
+                    } else if (childType == long.class || childType == Long.class) {
+                        childValue = jsonArray.optLong(i, 0);
+                    } else if (childType == String.class) {
+                        childValue = jsonArray.optString(i);
+                    } else if (childType == char.class) {
+                        char[] charArray = jsonArray.optString(i).toCharArray();
+                        if (charArray.length > 0) {
+                            childValue = charArray[0];
+                        }
+                    } else if (childType == short.class || childType == Short.class) {
+                        childValue = (short) jsonArray.optInt(i, 0);
+                    } else if (childType == byte.class || childType == Byte.class) {
+                        childValue = (byte) jsonArray.optInt(i, 0);
+                    }
+                    Array.set(array, i, childValue);
+                }
+
+
+            } else {
+
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jsonObject = null;
+                    try {
+                        jsonObject = jsonArray.getJSONObject(i);
+                        Object childValue = JSON.parseObject(jsonObject, childType, combinationType);
+                        Array.set(array, i, childValue);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            if (array != null) {
+                field.setAccessible(true);
+                field.set(t, array);
+            }
+        }
+    }
+
+    private static void setValueFromMap(JSONObject jsonObject, Field field, Object t) throws IllegalAccessException {
+
+        if (jsonObject != null) {
+            Map map = setJsonToMap(jsonObject);
+            field.setAccessible(true);
+            field.set(t, map);
+        }
+    }
+    private static Map setJsonToMap(JSONObject jsonObject) throws IllegalAccessException {
+
+        if (jsonObject != null) {
+            Map<String, Object> map = new HashMap<>();
+            Iterator<String> iterator = jsonObject.keys();
+            while(iterator.hasNext()){
+                String key = iterator.next();
+                try {
+                    Object o = jsonObject.get(key);
+                    if(o != null){
+                        if(o.toString().startsWith("{")){
+                            Map map1 = setJsonToMap((JSONObject) o);
+                            map.put(key, map1);
+                        } else if(o.toString().startsWith("[")){
+                            JSONArray array = (JSONArray) o;
+                            List<Map> listMap = new ArrayList<>();
+                            for (int i = 0; i < array.length(); i++) {
+                                Map map3 = setJsonToMap(array.getJSONObject(i));
+                                listMap.add(map3);
+                            }
+                            map.put(key, listMap);
+                        } else {
+                            map.put(key, o.toString());
+                        }
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            return map;
+        }
+        return null;
+    }
+
     public static <T> T parseObject(String json, Class<T> clazz, CombinationType combinationType){
          
 		try {
@@ -363,8 +535,13 @@ public class JSON {
 
     public static <T> T parseObject(JSONObject json, Class<T> clazz, CombinationType combinationType){
     	try {
-	    	T t = clazz.newInstance();
-	        t = valueFromDictionaryFromParent2(clazz, json, t, combinationType);
+            T t = null;
+            if(!Map.class.isAssignableFrom(clazz)){
+                t = clazz.newInstance();
+                t = valueFromDictionaryFromParent2(clazz, json, t, combinationType);
+            } else {
+                t = (T) setJsonToMap(json);
+            }
 	        return t;
 	    } catch (Exception e) {
 			e.printStackTrace();
@@ -379,6 +556,18 @@ public class JSON {
 			T t = parseObject(js, clazz, JSON.combinationType);
 			return t;
 		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+        return null;
+    }
+    public static Map parseMap(String json) {
+
+		try {
+			JSONObject jsonObject = new JSONObject(json);
+            return setJsonToMap(jsonObject);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
         return null;

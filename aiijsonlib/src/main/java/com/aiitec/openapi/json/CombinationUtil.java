@@ -1,21 +1,40 @@
 package com.aiitec.openapi.json;
 
+import com.aiitec.openapi.json.annotation.JSONField;
+import com.aiitec.openapi.json.utils.TextUtils;
+
+import java.lang.ref.SoftReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.aiitec.openapi.json.annotation.JSONField;
-import com.aiitec.openapi.json.utils.TextUtils;
-
 
 public class CombinationUtil {
 
 	
 //	private static SparseArray<List<Field>> fieldSparseArray = new SparseArray<>();
-	private static HashMap<Integer, List<Field>> map = new HashMap<>();
-	private static HashMap<Integer, Class<?>> childClasses = new HashMap<>();
+
+	private static HashMap<Class<?>, List<Field>> map = new HashMap<>();
+    private static SoftReference<HashMap<Class<?>, List<Field>>> softMap = new SoftReference<>(map);
+	private static HashMap<Field, Class<?>> childClasses = new HashMap<>();
+    private static SoftReference<HashMap<Field, Class<?>>> softChildClasses = new SoftReference<>(childClasses);
+	/**需要过滤的字段*/
+	private static List<String> filterFields = new ArrayList<>();
+	static {
+        filterFields.add("serialVersionUID");
+        filterFields.add("CREATOR");
+        filterFields.add("companion");
+    }
+    public static void addFilterField(String fieldName){
+        filterFields.add("fieldName");
+    }
+    public static void removeFilterField(String fieldName){
+        if(filterFields.contains(fieldName)){
+            filterFields.remove("fieldName");
+        }
+    }
     /**
      * 获取当前类和父类所有字段 ，递归遍历
      * 
@@ -38,12 +57,17 @@ public class CombinationUtil {
             if (field.isSynthetic()) {
                 continue;
             }
-            if (field.getName().equalsIgnoreCase("serialVersionUID")) {
+            boolean isfilterField = false;
+            for(String filterField : filterFields){
+                if (field.getName().equalsIgnoreCase(filterField)) {
+                    isfilterField = true;
+                    break;
+                }
+            }
+            if(isfilterField){
                 continue;
             }
-            if (field.getName().equals("CREATOR")) {
-                continue;
-            }
+
 
             // 变量名
             String filedName = field.getName();
@@ -89,30 +113,44 @@ public class CombinationUtil {
      * @return
      */
     public static List<Field> getAllFields(Class<?> clazz) {
-
-       
-        List<Field> allFields = map.get(clazz.hashCode());
+        List<Field> allFields = null;
+        HashMap<Class<?>, List<Field>> map = softMap.get();
+        if(map != null){
+            allFields = map.get(clazz);
+        } else {
+            map = new HashMap<>();
+            softMap = new SoftReference<>(map);
+        }
         if(allFields == null){
-        	 allFields = new ArrayList<Field>();
+        	 allFields = new ArrayList<>();
         	 allFields = getFields(clazz, allFields);
-        	 map.put(clazz.hashCode(), allFields);
+            map.put(clazz, allFields);
         }
         
         return allFields;
     }
     
     public static Class<?> getChildClass(Field field){
-    	Class<?> childClass = childClasses.get(field.hashCode());
+        HashMap<Field, Class<?>> childClasses = softChildClasses.get();
+        Class<?> childClass = null;
+        if(childClasses != null){
+            childClass = childClasses.get(field);
+        } else {
+            childClasses = new HashMap<>();
+            softChildClasses = new SoftReference<>(childClasses);
+        }
+
     	if(childClass == null){
     		ParameterizedType type = (ParameterizedType) field.getGenericType();
             if (type.getActualTypeArguments() != null && type.getActualTypeArguments().length > 0) {
                 childClass = (Class<?>) type.getActualTypeArguments()[0];
                 if(childClass != null){
-                	childClasses.put(field.hashCode(), childClass);
+                	childClasses.put(field, childClass);
                 }
             }
     	}
         return childClass; 
     }
-   
+
+
 }

@@ -32,6 +32,7 @@ public class Address extends Entity{
     /**地区信息对象*/
     @JSONField(name="regionInfo", entityName="region")
     private List<Region> regionInfo ;
+    private Region[] regions2 ;
 
 
 
@@ -168,5 +169,11 @@ public class Address extends Entity{
         this.regionInfo = regionInfo;
     }
 
+    public Region[] getRegions2() {
+        return regions2;
+    }
 
+    public void setRegions2(Region[] regions2) {
+        this.regions2 = regions2;
+    }
 }
