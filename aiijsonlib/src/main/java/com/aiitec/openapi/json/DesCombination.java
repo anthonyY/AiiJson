@@ -208,106 +208,97 @@ public class DesCombination {
 	 * @throws JSONException
 	 */
 	public static void setValueToAttribute(Field field, JSONObject json, Object t,
-			String replaceName) throws IllegalAccessException,
-			InvocationTargetException, NoSuchMethodException,
-			IllegalArgumentException {
+			String replaceName) {
 
 		if (json.has(replaceName)
 				&& !json.optString(replaceName).equalsIgnoreCase("null")
 				&& !json.optString(replaceName).equalsIgnoreCase("undefined")) {
 
-			// 这里传过来的变量类型已经确定了，是常用类型，所以不用考虑太多了
-			if (field.getType() == int.class
-					|| field.getType() == Integer.class) {
-				int value = json.optInt(replaceName, 0);
-				field.setAccessible(true);
-				field.set(t, value);
-			} else if (field.getType() == boolean.class) {
-				boolean value = false;
-				String stringValue = json.optString(replaceName, "2");
-				if (stringValue.equals("1")) {
-					value = true;
-				} else if (stringValue.equals("0") || stringValue.equals("2")) {
-					value = false;
+			try {
+// 这里传过来的变量类型已经确定了，是常用类型，所以不用考虑太多了
+				if (field.getType() == int.class || field.getType() == Integer.class) {
+					int value = json.optInt(replaceName, 0);
+					field.setAccessible(true);
+					field.set(t, value);
+				} else if (field.getType() == boolean.class || field.getType() == Boolean.class) {
+					boolean value = false;
+					String stringValue = json.optString(replaceName, "2");
+					if (stringValue.equals("1")) {
+						value = true;
+					} else if (stringValue.equals("0") || stringValue.equals("2")) {
+						value = false;
+					} else {
+						value = json.optBoolean(replaceName, false);
+					}
+					field.setAccessible(true);
+					field.set(t, value);
+				} else if (field.getType() == float.class || field.getType() == Float.class) {
+					field.setAccessible(true);
+					field.set(t, (float) json.optDouble(replaceName, 0));
+				} else if (field.getType() == double.class || field.getType() == Double.class) {
+					field.setAccessible(true);
+					field.set(t, json.optDouble(replaceName, 0));
+				} else if (field.getType() == long.class || field.getType() == Long.class) {
+					// 下面的内容如果返回“”容易报数字转换异常，如果转换出错就让
+					field.setAccessible(true);
+					field.set(t, json.optLong(replaceName, 0));
 				} else {
-					value = json.optBoolean(replaceName, false);
+					field.setAccessible(true);
+					field.set(t, json.optString(replaceName, ""));
 				}
-				field.setAccessible(true);
-				field.set(t, value);
-			} else if (field.getType() == float.class) {
-				field.setAccessible(true);
-				field.set(t, (float) json.optDouble(replaceName, 0));
-			} else if (field.getType() == double.class) {
-				field.setAccessible(true);
-				field.set(t, json.optDouble(replaceName, 0));
-			} else if (field.getType() == long.class) {
-				// 下面的内容如果返回“”容易报数字转换异常，如果转换出错就让
-				field.setAccessible(true);
-				field.set(t, json.optLong(replaceName, 0));
-			} else {
-				field.setAccessible(true);
-				field.set(t, json.optString(replaceName, ""));
 			}
+			catch (IllegalAccessException | IllegalArgumentException e){
+				e.printStackTrace();
+			}
+
+
 		}
 	}
 
 	public static void setValueToAttribute2(Object t, Field field,
-			Class<? extends Object> clazz, Object jValue) throws IllegalAccessException,
-			InvocationTargetException, NoSuchMethodException,
-			IllegalArgumentException {
+			Class<? extends Object> clazz, Object jValue){
 
 		// 这里传过来的变量类型已经确定了，是常用类型，所以不用考虑太多了
-		if (field.getType() == int.class || field.getType() == Integer.class) {
-			int value = 0;
-			try {
-				value = Integer.parseInt(jValue.toString());
-			} catch (NumberFormatException e) {
-				// e.printStackTrace();
+		try {
+			if (field.getType() == int.class || field.getType() == Integer.class) {
+				int value = Integer.parseInt(jValue.toString());
+
+				field.setAccessible(true);
+				field.set(t, value);
+
+			} else if (field.getType() == boolean.class || field.getType() == Boolean.class) {
+				boolean value = false;
+				String stringValue = jValue.toString();
+				if (stringValue.equals("1") || stringValue.equalsIgnoreCase("true")) {
+					value = true;
+				} else if (stringValue.equals("0") || stringValue.equals("2")
+						|| stringValue.equalsIgnoreCase("false")) {
+					value = false;
+				}
+				field.setAccessible(true);
+				field.set(t, value);
+			} else if (field.getType() == float.class || field.getType() == Float.class) {
+				field.setAccessible(true);
+				float floatValue  = Float.parseFloat(jValue.toString());
+				field.set(t, floatValue);
+			} else if (field.getType() == double.class || field.getType() == Double.class) {
+				field.setAccessible(true);
+				double doubleValue = Double.parseDouble(jValue.toString());
+				field.set(t, doubleValue);
+			} else if (field.getType() == long.class || field.getType() == Long.class) {
+				// 下面的内容如果返回“”容易报数字转换异常，如果转换出错就让
+				long longValue = Long.parseLong(jValue.toString());
+				field.setAccessible(true);
+				field.set(t, longValue);
+			} else {
+				field.setAccessible(true);
+				field.set(t, jValue.toString());
 			}
-			field.setAccessible(true);
-			field.set(t, value);
-		} else if (field.getType() == boolean.class) {
-			boolean value = false;
-			String stringValue = jValue.toString();
-			if (stringValue.equals("1") || stringValue.equalsIgnoreCase("true")) {
-				value = true;
-			} else if (stringValue.equals("0") || stringValue.equals("2")
-					|| stringValue.equalsIgnoreCase("false")) {
-				value = false;
-			}
-			field.setAccessible(true);
-			field.set(t, value);
-		} else if (field.getType() == float.class) {
-			field.setAccessible(true);
-			float floatValue = 0;
-			try {
-				floatValue = Float.parseFloat(jValue.toString());
-			} catch (NumberFormatException e) {
-				//
-			}
-			field.set(t, floatValue);
-		} else if (field.getType() == double.class) {
-			field.setAccessible(true);
-			double doubleValue = 0;
-			try {
-				doubleValue = Double.parseDouble(jValue.toString());
-			} catch (NumberFormatException e) {
-				//
-			}
-			field.set(t, doubleValue);
-		} else if (field.getType() == long.class) {
-			// 下面的内容如果返回“”容易报数字转换异常，如果转换出错就让
-			long longValue = 0;
-			try {
-				longValue = Long.parseLong(jValue.toString());
-			} catch (NumberFormatException e) {
-				//
-			}
-			field.setAccessible(true);
-			field.set(t, longValue);
-		} else {
-			field.setAccessible(true);
-			field.set(t, jValue.toString());
+
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (NumberFormatException e) {
+			// e.printStackTrace();
 		}
 
 	}
