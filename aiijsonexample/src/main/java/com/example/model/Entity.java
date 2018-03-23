@@ -36,9 +36,12 @@ public class Entity implements Cloneable {
                         || field.getType().equals(Float.class) || field.getType().equals(Double.class)) {
                     field.setAccessible(true);
                     Object value = field.get(this);
-                    if (Double.parseDouble(value.toString()) == 0) {
-                        field.set(this, -1);
+                    if(value != null){
+                        if (Double.parseDouble(value.toString()) == 0) {
+                            field.set(this, -1);
+                        }
                     }
+
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();

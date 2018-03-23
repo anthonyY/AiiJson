@@ -4,6 +4,7 @@ import com.aiitec.openapi.json.JSON;
 import com.aiitec.openapi.json.utils.JsonUtils;
 import com.example.model.Address;
 import com.example.model.Card;
+import com.example.model.PaySubmitReponse;
 import com.example.model.Region;
 import com.example.model.User;
 
@@ -23,7 +24,8 @@ public class ExampleClass {
         ExampleClass example = new ExampleClass();
 //        String json = example.combination();
 //        example.decomposition(json);
-        example.mapTest();
+//        example.mapTest();
+        example.test2();
 
 
 
@@ -163,5 +165,11 @@ public class ExampleClass {
 
     }
 
+    private void test2(){
+        String json = "{\"n\":\"PaySubmit\",\"q\":{\"amount\":88.00,\"d\":\"操作成功\",\"id\":297,\"orderSn\":\"lwf1521098175310110529c4YL0pf48b\",\"s\":0,\"t\":\"2018-03-15 15:17:26\",\"wxPay\":\"{\\\"package\\\":\\\"Sign=WXPay\\\",\\\"appid\\\":\\\"wx0a9c8400034dab98\\\",\\\"sign\\\":\\\"823A8BF6875D0077A42407C069474096\\\",\\\"prepayid\\\":\\\"wx20180315151728adc0108c4e0740937027\\\",\\\"partnerid\\\":\\\"1341116901\\\",\\\"webchatXmlPost\\\":\\\"<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg><appid><![CDATA[wx0a9c8400034dab98]]></appid><mch_id><![CDATA[1341116901]]></mch_id><nonce_str><![CDATA[tms13blzIPGNPttS]]><nce_str><sign><![CDATA[347378206B7367ED1903EE82BE633E45]]></sign><result_code><![CDATA[SUCCESS]]></result_code><prepay_id><![CDATA[wx20180315151728adc0108c4e0740937027]]></prepay_id><trade_type><![CDATA[APP]]></trade_type></xml>\\\",\\\"retmsg\\\":\\\"OK\\\",\\\"noncestr\\\":\\\"tms13blzIPGNPttS\\\",\\\"retcode\\\":\\\"SUCCESS\\\",\\\"timestamp\\\":\\\"1521098246\\\"}\"},\"s\":\"3V3J7d0c289H4N85KNg659btW465cfRb\"}";
+
+        PaySubmitReponse response = JSON.parseObject(json, PaySubmitReponse.class);
+        System.out.println(response.getQuery().getAmount());
+    }
 
 }

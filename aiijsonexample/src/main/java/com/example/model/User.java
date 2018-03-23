@@ -237,9 +237,11 @@ public class User extends Entity {
         this.nickname = nickname;
     }
 
+    @Override
     public String getTimestamp() {
         return timestamp;
     }
+    @Override
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
     }
