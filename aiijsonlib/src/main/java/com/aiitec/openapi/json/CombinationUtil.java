@@ -8,16 +8,16 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 
 public class CombinationUtil {
 
 	
-//	private static SparseArray<List<Field>> fieldSparseArray = new SparseArray<>();
 
-	private static HashMap<Class<?>, List<Field>> map = new HashMap<>();
-    private static SoftReference<HashMap<Class<?>, List<Field>>> softMap = new SoftReference<>(map);
+	private static HashMap<Class<?>, LinkedList<Field>> map = new HashMap<>();
+    private static SoftReference<HashMap<Class<?>, LinkedList<Field>>> softMap = new SoftReference<>(map);
 	private static HashMap<Field, Class<?>> childClasses = new HashMap<>();
     private static SoftReference<HashMap<Field, Class<?>>> softChildClasses = new SoftReference<>(childClasses);
 	/**需要过滤的字段*/
@@ -44,7 +44,7 @@ public class CombinationUtil {
      *            记录所有字段的集合
      * @return 当前类和祖宗类的所有字段（不重复，包括注解名字一样的也变成一个）
      */
-    private static List<Field> getFields(Class<?> clazz, List<Field> allFields) {
+    private static LinkedList<Field> getFields(Class<?> clazz, LinkedList<Field> allFields) {
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
             /*
@@ -113,8 +113,8 @@ public class CombinationUtil {
      * @return
      */
     public static List<Field> getAllFields(Class<?> clazz) {
-        List<Field> allFields = null;
-        HashMap<Class<?>, List<Field>> map = softMap.get();
+        LinkedList<Field> allFields = null;
+        HashMap<Class<?>, LinkedList<Field>> map = softMap.get();
         if(map != null){
             allFields = map.get(clazz);
         } else {
@@ -122,7 +122,7 @@ public class CombinationUtil {
             softMap = new SoftReference<>(map);
         }
         if(allFields == null){
-        	 allFields = new ArrayList<>();
+        	 allFields = new LinkedList<>();
         	 allFields = getFields(clazz, allFields);
             map.put(clazz, allFields);
         }
