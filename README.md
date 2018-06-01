@@ -134,10 +134,35 @@ dependencies {
     compile 'com.aiitec.aiijson:aiijsonlib:1.0.3'
 }
 ```
+### 字段加密
+可以在字段上加注解 @JSONField(isPassword=true)
+
+```
+ @JSONField(isPassword=true)
+ private String password
+ 
+ user.setPassword("123456")
+ ```
+ 
+ 组成json时会变成加密后的值
+ 默认加密方式 md5(saltingStr + md5(pasword))
+ 需要更改可以这样写
+ ```
+ //设置加盐秘钥
+ Encrypt.setSaltingStr("sfdsfdsgcvcvv")
+ //自定义加密方法
+ Encrypt.setCustomAlgorithm { pasword, saltingStr ->
+       //不设置时， 默认 md5(saltingStr + md5(pasword))
+       return@setCustomAlgorithm "你的加密方式"
+ }
+ ```
+ 
 
 更新日志：
 1.0.3 增加对数组和Map的支持，Map只支持里面装常用数据类型，不支持Map装自定义对象
 更新时间 2018-01-31
+1.0.4 增加字段的排序
+更新时间 2018-05-14
 
 
 ```
