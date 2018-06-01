@@ -126,14 +126,7 @@ protected static boolean isOpenMd5 = true;
 @JSONField(isForcedCombination=true)
 private long userId = -1;
 ```
-### 引用方式  
 
-``` 
-dependencies {
-    ...  
-    compile 'com.aiitec.aiijson:aiijsonlib:1.0.3'
-}
-```
 ### 字段加密
 可以在字段上加注解 @JSONField(isPassword=true)
 
@@ -157,6 +150,14 @@ dependencies {
  }
  ```
  
+### 引用方式  
+
+``` 
+dependencies {
+    ...  
+    compile 'com.aiitec.aiijson:aiijsonlib:1.0.4'
+}
+```
 
 更新日志：
 1.0.3 增加对数组和Map的支持，Map只支持里面装常用数据类型，不支持Map装自定义对象
@@ -164,6 +165,9 @@ dependencies {
 1.0.4 增加字段的排序
 更新时间 2018-05-14
 
+### 联系交流
+QQ 544897948
+微信 544897948
 
 ```
 Copyright 2017 AiiJson
