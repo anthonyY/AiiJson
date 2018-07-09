@@ -176,11 +176,7 @@ public class Combination {
                 // Object result = clazz.getMethod(methodName).invoke(t);
                 if (result != null) {
                     if (isPassword) {
-                        if (JSON.saltingPassword) {
-                            result = Encrypt.saltingPassword(result.toString());
-                        } else {
-                            result = Encrypt.md5(result.toString());
-                        }
+                        result = Encrypt.saltingPassword(result.toString());
                     }
                     appendValueToJson(field, result, sb, fieldName);
                 }
@@ -314,9 +310,6 @@ public class Combination {
      * @param str
      *            String 对象
      * @return String:JSON格式
-     * @version 1.0
-     * @date 2015-10-11
-     * @Author zhou.wenkai
      */
     private static String stringToJson(final String str) {
         if (str == null || str.length() == 0) {
@@ -324,12 +317,23 @@ public class Combination {
         }
         final StringBuilder sb = new StringBuilder(str.length() + 2 << 4);
         sb.append('\"');
-        for (int i = 0; i < str.length(); i++) {
-            final char c = str.charAt(i);
+        if(str.contains("\"") || str.contains("\\") || str.contains("\b") || str.contains("\f")|| str.contains("\r") || str.contains("\n") || str.contains("\t") || str.contains("/")){
+            for (int i = 0; i < str.length(); i++) {
+                final char c = str.charAt(i);
+                String ch ;
+                if(c == '/' && JSON.needReplaceSlash){
+                    ch = "\\/" ;
+                } else {
+                    ch = c == '\"' ? "\\\"" : c == '\\' ? "\\\\" :  c == '\b' ? "\\b"
+                            : c == '\f' ? "\\f" : c == '\n' ? "\\n" : c == '\r' ? "\\r" : c == '\t' ? "\\t" : c+"";
 
-            sb.append(c == '\"' ? "\\\"" : c == '\\' ? "\\\\" : c == '/' ? "\\/" : c == '\b' ? "\\b"
-                    : c == '\f' ? "\\f" : c == '\n' ? "\\n" : c == '\r' ? "\\r" : c == '\t' ? "\\t" : c+"");
+                }
+                sb.append(ch);
+            }
+        } else {
+            sb.append(str);
         }
+
         sb.append('\"');
         return sb.toString();
     }

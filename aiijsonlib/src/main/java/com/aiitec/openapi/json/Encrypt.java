@@ -73,9 +73,12 @@ public class Encrypt {
         if (customAlgorithm != null) {
             return customAlgorithm.setAlgorithm(pasword, saltingStr);
         } else {
-            return md5(saltingStr + md5(pasword));
+            if(JSON.saltingPassword){
+                return md5(saltingStr + md5(pasword));
+            } else {
+                return md5(pasword);
+            }
         }
-
     }
 
     /**自定义加密算法*/

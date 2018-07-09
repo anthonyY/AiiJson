@@ -7,8 +7,9 @@ import java.lang.ref.SoftReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 
 
@@ -16,11 +17,26 @@ public class CombinationUtil {
 
 	
 
-	private static HashMap<Class<?>, LinkedList<Field>> map = new HashMap<>();
-    private static SoftReference<HashMap<Class<?>, LinkedList<Field>>> softMap = new SoftReference<>(map);
+	private static HashMap<Class<?>, List<Field>> map = new HashMap<>();
+    private static SoftReference<HashMap<Class<?>, List<Field>>> softMap = new SoftReference<>(map);
 	private static HashMap<Field, Class<?>> childClasses = new HashMap<>();
     private static SoftReference<HashMap<Field, Class<?>>> softChildClasses = new SoftReference<>(childClasses);
-	/**需要过滤的字段*/
+
+
+
+    private static OnFieldComparatorListener onFieldComparatorListener;
+
+    public static void setOnFieldComparatorListener(OnFieldComparatorListener onFieldComparatorListener) {
+        CombinationUtil.onFieldComparatorListener = onFieldComparatorListener;
+    }
+
+    /**
+     * 排序监听接口，本来想提供Comparator 给用户调用的，但是 Annotation 的 名字怕用户会忽略，直接取field.getName() 然后找不到问题，所以写成这样了
+     */
+    public interface OnFieldComparatorListener{
+        int onFieldComparator(String fieldName1, String fieldName2) ;
+    }
+    /**需要过滤的字段*/
 	private static List<String> filterFields = new ArrayList<>();
 	static {
         filterFields.add("serialVersionUID");
@@ -44,7 +60,7 @@ public class CombinationUtil {
      *            记录所有字段的集合
      * @return 当前类和祖宗类的所有字段（不重复，包括注解名字一样的也变成一个）
      */
-    private static LinkedList<Field> getFields(Class<?> clazz, LinkedList<Field> allFields) {
+    private static List<Field> getFields(Class<?> clazz, List<Field> allFields) {
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
             /*
@@ -68,28 +84,19 @@ public class CombinationUtil {
                 continue;
             }
 
+            if (field.getAnnotation(JSONField.class) != null && field.getAnnotation(JSONField.class).notCombination()) {
+                // 如果不需组包
+                continue;
+            }
 
             // 变量名
-            String filedName = field.getName();
-            // 注解名
-            String filedAnnName = null;
-            if (field.getAnnotation(JSONField.class) != null) {
-                filedAnnName = field.getAnnotation(JSONField.class).name();
-                // 如果不需组包
-                if (field.getAnnotation(JSONField.class).notCombination()) {
-                    continue;
-                }
-            }
+            String filedName = getAnnFieldName(field);
+
             boolean isSame = false;
             for (Field field2 : allFields) {
-                String allFieldAnnName = null;
-                if (field2.getAnnotation(JSONField.class) != null) {
-                    allFieldAnnName = field2.getAnnotation(JSONField.class).name();
-                }
-                if ((field2.getName().equals(filedName))
-                        || (!TextUtils.isEmpty(allFieldAnnName) && allFieldAnnName.equals(filedName))
-                        || (!TextUtils.isEmpty(allFieldAnnName) && !TextUtils.isEmpty(filedAnnName) && allFieldAnnName
-                                .equals(filedAnnName))) {// 已经有了
+                String filedName2 = getAnnFieldName(field2);
+                if (filedName2.equals(filedName)) {
+                    // 已经有了
                     isSame = true;
                     break;
                 }
@@ -107,14 +114,14 @@ public class CombinationUtil {
     }
 
     /**
-     * 获取类的所以变量， 包括父类，爷爷类，到Object为止
+     * 获取类的所有变量， 包括父类，爷爷类，到Object为止
      * 
      * @param clazz
      * @return
      */
     public static List<Field> getAllFields(Class<?> clazz) {
-        LinkedList<Field> allFields = null;
-        HashMap<Class<?>, LinkedList<Field>> map = softMap.get();
+        List<Field> allFields = null;
+        HashMap<Class<?>, List<Field>> map = softMap.get();
         if(map != null){
             allFields = map.get(clazz);
         } else {
@@ -122,11 +129,13 @@ public class CombinationUtil {
             softMap = new SoftReference<>(map);
         }
         if(allFields == null){
-        	 allFields = new LinkedList<>();
+        	 allFields = new ArrayList<>();
         	 allFields = getFields(clazz, allFields);
             map.put(clazz, allFields);
         }
-        
+        if(JSON.needSort){
+            sortKeys(allFields);
+        }
         return allFields;
     }
     
@@ -152,5 +161,60 @@ public class CombinationUtil {
         return childClass; 
     }
 
+    /**
+     * 对变量进行排序
+     * @param params
+     */
+    private static void sortKeys(List<Field> params){
+        Collections.sort(params, new Comparator<Field>(){
+            @Override
+            public int compare(Field leftField, Field rightField) {
+                String leftName = getAnnFieldName(leftField);
+                String rightName = getAnnFieldName(rightField);
+                if(onFieldComparatorListener != null){
+                    return onFieldComparatorListener.onFieldComparator(leftName, rightName);
+                }
+                for (int i = 0; i < leftName.length(); i++) {
+                    char ch1 = leftName.charAt(i);
+                    if(rightName.length() > i){
+                        char ch2 = rightName.charAt(i);
+                        if(ch1 == ch2){
+                            //如果第一个字母相同，再比较下一个
+                            continue;
+                        } else {
+                            return ch1 - ch2;
+                        }
 
+                    } else {
+                        return 1;
+                    }
+                }
+                //比较结果一致，再比较长度
+                return leftName.length() - rightName.length();
+            }
+        });
+    }
+
+    /**
+     * 获取 变量的 名字或者注解名， 如果有注解名，就用注解名
+     * @param field
+     * @return
+     */
+    public static String getAnnFieldName(Field field) {
+        // 变量名
+        String filedName = field.getName();
+        // 注解名
+        String filedAnnName = null;
+        if (field.getAnnotation(JSONField.class) != null) {
+            // 如果不需组包
+            if (field.getAnnotation(JSONField.class).notCombination()) {
+                return filedName;
+            }
+            filedAnnName = field.getAnnotation(JSONField.class).name();
+            if (!TextUtils.isEmpty(filedAnnName)) {
+                return filedAnnName;
+            }
+        }
+        return filedName;
+    }
 }

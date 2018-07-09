@@ -38,6 +38,8 @@ public class JSON {
     public static CombinationType combinationType = CombinationType.AII_STYLE;
     /** 是否对密码加盐 */
     public static boolean saltingPassword = false;
+    public static boolean needSort = false;
+    public static boolean needReplaceSlash = false;
     public static final String TAG = "TAG_AII_JSON";
     
     private static String getStringFromArray(List<?> list, CombinationType combinationType)

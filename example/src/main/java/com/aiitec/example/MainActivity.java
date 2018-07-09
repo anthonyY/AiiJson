@@ -13,7 +13,9 @@ import com.aiitec.example.model.Address;
 import com.aiitec.example.model.Card;
 import com.aiitec.example.model.Region;
 import com.aiitec.example.model.User;
+import com.aiitec.openapi.json.CombinationUtil;
 import com.aiitec.openapi.json.JSON;
+import com.aiitec.openapi.json.utils.DefaultFieldComparator;
 import com.aiitec.openapi.json.utils.JsonUtils;
 
 import java.util.ArrayList;
@@ -88,11 +90,48 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+    class MyFieldComparator extends  DefaultFieldComparator{
+
+        @Override
+        public int onFieldComparator(String leftName, String rightName) {
+            for (int i = 0; i < leftName.length(); i++) {
+                char ch1 = leftName.charAt(i);
+                if(rightName.length() > i){
+                    char ch2 = rightName.charAt(i);
+                    if(ch1 == ch2){
+                        //如果第一个字母相同，再比较下一个
+                        continue;
+                    } else {
+                        return ch2-ch1 ;
+                    }
+
+                } else {
+                    return 1;
+                }
+            }
+            //比较结果一致，再比较长度
+            return rightName.length()-leftName.length();
+        }
+    }
+
+
 
     /**
      * 组包
      */
     private void combination() {
+
+        //是否需要排序
+        JSON.needSort = true;
+        //设置自定义排序
+        CombinationUtil.setOnFieldComparatorListener(new MyFieldComparator());
+//        CombinationUtil.setOnFieldComparatorListener(new CombinationUtil.OnFieldComparatorListener() {
+//            @Override
+//            public int onFieldComparator(String fieldName1, String fieldName2) {
+//                //自己定义的排序方式
+//                return fieldName1.compareToIgnoreCase(fieldName2);
+//            }
+//        });
 
         Card card = new Card();
 

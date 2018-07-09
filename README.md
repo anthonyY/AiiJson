@@ -133,29 +133,46 @@ private long userId = -1;
 ```
  @JSONField(isPassword=true)
  private String password
- 
+
  user.setPassword("123456")
  ```
- 
+
  组成json时会变成加密后的值
  默认加密方式 md5(saltingStr + md5(pasword))
  需要更改可以这样写
  ```
+ JSON.saltingPassword = false
  //设置加盐秘钥
  Encrypt.setSaltingStr("sfdsfdsgcvcvv")
  //自定义加密方法
  Encrypt.setCustomAlgorithm { pasword, saltingStr ->
-       //不设置时， 默认 md5(saltingStr + md5(pasword))
        return@setCustomAlgorithm "你的加密方式"
  }
+ //不设置时，如果 JSON.saltingPassword = true 默认 md5(saltingStr + md5(pasword))
+ 如果  JSON.saltingPassword = false 默认 md5(pasword)
  ```
- 
-### 引用方式  
+
+### 设置是否排序和自定义排序
+
+```
+    //是否需要排序
+    JSON.needSort = true;
+    //设置自定义排序
+    CombinationUtil.setOnFieldComparatorListener(new CombinationUtil.OnFieldComparatorListener() {
+            @Override
+            public int onFieldComparator(String fieldName1, String fieldName2) {
+                //自己定义的排序方式
+                return fieldName1.compareToIgnoreCase(fieldName2);
+            }
+        });
+```
+
+### 引用方式
 
 ``` 
 dependencies {
     ...  
-    compile 'com.aiitec.aiijson:aiijsonlib:1.0.4'
+    compile 'com.aiitec.aiijson:aiijsonlib:1.0.5'
 }
 ```
 
@@ -164,6 +181,8 @@ dependencies {
 更新时间 2018-01-31
 1.0.4 增加字段的排序
 更新时间 2018-05-14
+1.0.5 增加排序可选，和自定义排序，默认不排序
+更新时间 2018-07-09
 
 ### 联系交流
 QQ 544897948
