@@ -138,7 +138,7 @@ private long userId = -1;
  ```
 
  组成json时会变成加密后的值
- 默认加密方式 md5(saltingStr + md5(pasword))
+
  需要更改可以这样写
  ```
  JSON.saltingPassword = false
@@ -172,7 +172,7 @@ private long userId = -1;
 ``` 
 dependencies {
     ...  
-    compile 'com.aiitec.aiijson:aiijsonlib:1.0.5'
+    compile 'com.aiitec.aiijson:aiijsonlib:1.0.4'
 }
 ```
 
@@ -181,8 +181,9 @@ dependencies {
 更新时间 2018-01-31
 1.0.4 增加字段的排序
 更新时间 2018-05-14
-1.0.5 增加排序可选，和自定义排序，默认不排序
-更新时间 2018-07-09
+~~1.0.5 增加排序可选，和自定义排序，默认不排序
+更新时间 2018-07-09~~
+这部分代码已经提交上来了，但是jcenter 提交出问题了，没有提交成功，所以jcenter的只有1.0.4
 
 ### 联系交流
 QQ 544897948
